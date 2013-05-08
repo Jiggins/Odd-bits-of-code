@@ -11,8 +11,8 @@ simpsonsRule f xs = (h / 3) * (sum $ f a : f b : (map (*2) [f x | x <- seconds $
        b = last xs
        n = fromIntegral $ length xs
        h = (b - a) / (2 * n)
-       seconds [] = []
-       seconds (_:[]) = []
+       seconds []		= []
+       seconds (_:[])	= []
        seconds (x:y:xs) = y : seconds xs
 
 main = do
