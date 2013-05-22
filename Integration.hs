@@ -16,6 +16,7 @@ simpsonsRule f xs = (h / 3) * (sum $ f a : f b : (map (*2) [f x | x <- seconds $
        seconds (x:y:xs) = y : seconds xs
 
 main = do
-  let f x = x^2 + x + 1
-  print $ simpsonsRule f [0, 0.1..5]
+  let f x = x ^ 2
+  print $ map f [1, 1.2, 1.4, 1.6, 1.8, 2.0]
+  print $ simpsonsRule f [1, 1.2, 1.4, 1.6, 1.8, 2.0]
 
