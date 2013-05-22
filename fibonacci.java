@@ -7,7 +7,7 @@ public static void fibonacci(int a, int b, int limit) {
 		int sum = a + b;
 		limit = limit - 1;
 		Sysytem.out.println(sum + " ");
-		fibonacci(b, sum, limit);
+		fibonacci(b, sum, limit); //That should be return fibonacci... but thats his notes.
 	}
 }
 
