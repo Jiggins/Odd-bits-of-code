@@ -15,5 +15,5 @@ public static void fibonacci(int a, int b, int limit) {
 public static fibonacci(int n) {
 	if (n == 0) return 0;	//Early return statements, here we are giving the first two fibonacci numbers
 	if (n == 1) return 1;	//so the program knows where to end.
-	return fibonacci(n-1) + fibonacci(n-2))
+	return fibonacci(n-1) + fibonacci(n-2));
 }
