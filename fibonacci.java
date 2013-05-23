@@ -7,11 +7,11 @@ public static void fibonacci(int a, int b, int limit) {
 		int sum = a + b;
 		limit = limit - 1;
 		Sysytem.out.println(sum + " ");
-		fibonacci(b, sum, limit);	//That should be return fibonacci... but thats from his notes.
+		fibonacci(b, sum, limit);
 	}
 }
 
-//My way
+//Phil Maguire
 public static int fibonacci(int n) {
 	if (n == 0) return 0;	//Early return statements, here we are giving the first two fibonacci numbers
 	if (n == 1) return 1;	//so the program knows where to end.
