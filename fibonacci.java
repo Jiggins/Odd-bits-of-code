@@ -42,7 +42,7 @@ public class fibonacci {
 	}
 
 	/**
-	*	
+	*	Taken from Sample Paper Section B.
 	*/
 	public static void pageRank() {
 		double prx = 0.15;
