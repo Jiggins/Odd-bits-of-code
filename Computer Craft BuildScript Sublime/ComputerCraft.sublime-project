@@ -1,0 +1,17 @@
+{
+	"folders":
+	[
+		{
+			"follow_symlinks": true,
+			"path": "/Users/Jack/Lua/ComputerCraft"
+		}
+	],
+	"build_systems":
+	[
+		{
+			"name": "ComputerCraft",
+			"cmd": ["python", "../SublimeText/CCBuildScript.py", "$file"],
+			"file_regex": "^[ ]*File \"(...*?)\", line ([0-9]*)"
+		}
+	]
+}
