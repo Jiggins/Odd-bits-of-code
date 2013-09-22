@@ -53,7 +53,16 @@ def readFile():
 	except:
 		print "Plese specify the world with \"--world=[World Name]\"."
 		print "Please specify the computer ID withuse \"--id=\"."
+		usage()
 		sys.exit()
+
+def usage():
+	print "\nUsage:"
+	print "This script uses the first to lines in the Lua file to copy to the correct path."
+	print "\tFirst Line:\t\t\"--world=(World Name)\""
+	print "\tSecond Line:\t\"--id=(List of computer ID numbers)\""
+	print "\tRun \"id\" on a computer in game to find its id number"
+	print "\nExample:\n\t--world=New World\n\t--id= 0, 1, 2, 4"
 
 def main():
 	world, computers = readFile()
