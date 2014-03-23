@@ -1,34 +1,34 @@
-{- Phil's lab.
-An anagram is a type of word play, the result of rearranging the letters of a word or phrase to 
-produce a new word or phrase, using all the original letters exactly once. Write a program that 
-finds the longest English anagram where the letters are completely scrambled (no letter is followed 
-by the same letter in both words). For example Mary and army are anagrams, but the a is followed by 
-r in both words, so it isn’t a scrambled anagram. Pot and top are scrambled anagrams.
-Try using last week’s smaller dictionary first. This has words up to 15 letters long. If you get 
-that working, you could try using the bigdictionary.txt or even biggestdictionary.txt. This has all 
-kinds of words. It has entries that are not proper words. You will need to modify your algorithm to 
-avoid noise. For example, turn all letters into lower case. Also, avoid any word that has 
-punctuation in it. Also, no valid
-￼￼
-English word has the same letter repeated more than twice in a row. You might need to enlist some 
-help from the user to accept or reject potential anagrams.
-Use any data structures you want (see the Java library for ArrayList, TreeMap, HashMap, 
-Arrays.sort() or Collections.sort()). Try to optimize your algorithm for speed (without overfitting it).
+{-
+	An anagram is a type of word play, the result of rearranging the letters of a word or phrase to 
+	produce a new word or phrase, using all the original letters exactly once. Write a program that 
+	finds the longest English anagram where the letters are completely scrambled (no letter is followed 
+	by the same letter in both words). For example Mary and army are anagrams, but the a is followed by 
+	r in both words, so it isn’t a scrambled anagram. Pot and top are scrambled anagrams.
+	Try using last week’s smaller dictionary first. This has words up to 15 letters long. If you get 
+	that working, you could try using the bigdictionary.txt or even biggestdictionary.txt. This has all 
+	kinds of words. It has entries that are not proper words. You will need to modify your algorithm to 
+	avoid noise. For example, turn all letters into lower case. Also, avoid any word that has 
+	punctuation in it. Also, no valid
+	￼￼
+	English word has the same letter repeated more than twice in a row. You might need to enlist some 
+	help from the user to accept or reject potential anagrams.
+	Use any data structures you want (see the Java library for ArrayList, TreeMap, HashMap, 
+	Arrays.sort() or Collections.sort()). Try to optimize your algorithm for speed (without overfitting it).
 
-Ha! Java... no
+	Ha! Java... no
 -}
-
-
 
 {- Imports:
 	importing allows us to use functions from the below modules.
 	import qualified gives a name to the package to avoid naming conflicts
 	like the length function is defined in Data.ByteString and in standard Haskell (default package is called Prelude)
 -}
-import Data.ByteString.Char8 (pack)
+import Data.ByteString.Char8 (pack, unpack)
 import Data.List
+import Data.Maybe
 import Data.Ord
 import Data.Text.Encoding
+import Data.Word
 import qualified Data.ByteString	as B 	-- Replacement for Strings.  Handles Text by Bytes rather than a [Char]
 import qualified Data.Map 			as Map	-- Binary tree based Hashmap data structure... yeah,  thats a mouthful
 import System.IO 							-- for dealing with IO. ugh..
@@ -60,9 +60,7 @@ sillyCharacterCount = 2
 	letterFrequency :: String -> [(Char, Int)]
 	letterFrequency xs = [(x,c) | x <- ['a'..'z'], let c = length $ filter (x ==) xs, c > 0]
 -}
-
---This type declaration works in GHCi,  not sure why it doesnt like it here
---letterFrequency :: ByteString -> [(GHC.Word.Word8, Int)]
+letterFrequency :: ByteString -> [(Word8, Int)]
 letterFrequency xs = [(x,c) | x <- [97..122], let c = B.length $ B.filter (x ==) xs, c > 0]
 
 {- Checks a word against a few Boolean functions -}
@@ -134,22 +132,59 @@ filterSillyCharacters str = count str <= sillyCharacterCount
 apply :: (a -> b) -> (a,a) -> (b,b)
 apply f (a,b) = (f a, f b)
 
+{- Adds every word into a map,  indexing them by their length -}
 mapByLength :: [ByteString] -> Map Int [ByteString]
 mapByLength = Map.fromListWith (++) . map f
 	where f x = (B.length x, [x])
 
-isAnagram :: ByteString -> [ByteString] -> (ByteString,ByteString)
-isAnagram _   [] = apply pack ("Not","Found")
-isAnagram str (x:xs) = if freq str == freq x && str /= x then (str,x) else isAnagram str xs
-	where freq = sortBy (comparing fst) . letterFrequency
+isAnagram :: ByteString -> [ByteString] -> Maybe (ByteString,ByteString)
+isAnagram _   [] = Nothing
+isAnagram str (x:xs) 
+	| x == str 									= isAnagram str xs 		--False if both Strings are equal.
+	| letterFrequency x == letterFrequency str	= Just (x,str)			--Anagram found.
+	| otherwise 								= isAnagram str xs		--Recursively check the next
+																		--String.
+{- Seemingly horribly innefficient -}
+isScrambled :: (ByteString, ByteString) -> Bool
+isScrambled (fir, las) = not . any (\x -> x `elem` toPairs las) $ toPairs fir
+ 
+toPairs :: ByteString -> [(Word8, Word8)]
+toPairs x = zip (B.unpack x) (tail $ B.unpack x)
 
+{- Searches through a list of ByteStrings for scrambled anagrams. 
+	If it finds an Anagram, it then checks to see if its scrambled,
+	else it checks the rest of the list.
+-}
+search :: [ByteString] -> Maybe (ByteString, ByteString)
+search [] = Nothing
+search (x:xs) = case isAnagram x xs of Nothing 		-> search xs
+                                       Just anagram -> case isScrambled anagram of False -> search xs
+                                                                                   True -> Just anagram
 
---Not finished yet
+{- Searches an index of a map using the search function above
+	It starts at the maximum index of the map (longest words)
+	If no anagrams are found, it checks the next longest words.	
+-}
+searchMap :: (Num a, Ord a) => Map a [ByteString] -> Maybe (ByteString, ByteString)
+searchMap mp = f mp (fst $ Map.findMax mp)
+	where f _  0 	= Nothing
+	      f mp len	= case Map.lookup len mp of Nothing -> f mp (len - 1)
+	                                            Just anagram -> case search anagram of Nothing -> f mp (len - 1)
+	                                                                                   Just a -> Just a
+
+solution :: ByteString -> Maybe (ByteString, ByteString)
+solution = searchMap . mapByLength . filter goodWord . B.split 10 -- B.split 10 == lines
+
+showSolution :: ByteString -> String
+showSolution dictionary = case solution dictionary of Nothing -> "No anagram found in dictionary"
+                                                      Just anagram -> concat ["The longest scrambled anagram found was: ",
+                                                                              unpack . fst $ anagram, 
+                                                                              " and ",
+                                                                              unpack . snd $ anagram]
+
+main :: IO ()
 main = do
-	let fileName = "input.txt"
+	let fileName = "Dictionary.txt"
 	f <- openFile fileName ReadMode -- IO stuff
 	dictionary <- B.hGetContents f 	-- More IO stuff
-	{- B.split 10 == lines -}
-	print . Map.lookup 4 . mapByLength . filter goodWord $ B.split 10 dictionary
-	--V.mapM_ print . V.filter goodWord . V.fromList . T.lines $ decodeUtf8 dictionary
-	print "done"
+	putStrLn $ showSolution dictionary
